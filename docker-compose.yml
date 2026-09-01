@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile
     container_name: netsentinel-backend
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@postgres:5432/netsentinel
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=development
       - CORS_ORIGINS=http://localhost:3000
