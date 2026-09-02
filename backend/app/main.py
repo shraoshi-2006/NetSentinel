@@ -7,8 +7,19 @@ from app.db.base import Base
 from app.db.session import engine
 import app.models  # noqa: F401
 
+from sqlalchemy import text
+
 # Create database tables if they do not exist
 Base.metadata.create_all(bind=engine)
+
+# Ensure user_id column exists in scans table (backwards-compatible schema upgrade)
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE scans ADD COLUMN user_id VARCHAR"))
+        conn.commit()
+except Exception:
+    pass
+
 
 app = FastAPI(
     title="NetSentinel API",

@@ -1,5 +1,5 @@
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Header
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -29,24 +29,34 @@ router = APIRouter()
 def get_security_score(
     db: Session = Depends(get_db),
     scan_id: Optional[int] = Query(None, description="Specific scan ID to calculate score for"),
+    x_user_id: Optional[str] = Header(None),
 ) -> Any:
+    user_key = x_user_id.strip() if x_user_id and x_user_id.strip() else None
+
+    # Base scan query scoped strictly to the requesting user
+    base_query = db.query(Scan)
+    if user_key:
+        base_query = base_query.filter(Scan.user_id == user_key)
+    else:
+        base_query = base_query.filter(Scan.user_id.is_(None))
+
     # If specific scan requested
     if scan_id:
-        current_scan = db.query(Scan).filter(Scan.id == scan_id).first()
+        current_scan = base_query.filter(Scan.id == scan_id).first()
     else:
-        # Get the latest completed scan, or if none completed, the latest scan
+        # Get the latest completed scan for this user, or if none completed, the latest scan
         current_scan = (
-            db.query(Scan)
+            base_query
             .filter(Scan.status == "completed")
             .order_by(Scan.created_at.desc())
             .first()
         )
         if not current_scan:
-            current_scan = db.query(Scan).order_by(Scan.created_at.desc()).first()
+            current_scan = base_query.order_by(Scan.created_at.desc()).first()
 
-    # Query all completed scans for history trend
+    # Query all completed scans for this user's history trend
     all_completed_scans = (
-        db.query(Scan)
+        base_query
         .filter(Scan.status == "completed")
         .order_by(Scan.created_at.asc())
         .limit(20)

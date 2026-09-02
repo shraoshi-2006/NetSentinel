@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Save,
   Shield,
@@ -10,12 +10,51 @@ import {
   Globe,
   MonitorSmartphone,
   CheckCircle2,
+  Copy,
+  Check,
+  RotateCcw,
 } from "lucide-react";
+import { getUserId, setUserId, resetUserKey } from "@/lib/user";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const [currentKey, setCurrentKey] = useState("");
+  const [customKeyInput, setCustomKeyInput] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [keyFeedback, setKeyFeedback] = useState("");
+
+  useEffect(() => {
+    setCurrentKey(getUserId());
+  }, []);
+
+  const handleCopyKey = () => {
+    if (!currentKey) return;
+    navigator.clipboard.writeText(currentKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleApplyCustomKey = () => {
+    const cleaned = customKeyInput.trim();
+    if (!cleaned) return;
+    setUserId(cleaned);
+    setCurrentKey(cleaned);
+    setCustomKeyInput("");
+    setKeyFeedback("Workspace key updated! Your scans and security score will now sync to this key.");
+    setTimeout(() => setKeyFeedback(""), 4000);
+  };
+
+  const handleGenerateNewKey = () => {
+    if (confirm("Are you sure you want to generate a new private workspace key? Your current scan history will remain safe under the old key, but this browser will switch to a fresh private session.")) {
+      const newKey = resetUserKey();
+      setCurrentKey(newKey);
+      setKeyFeedback("New private workspace key generated successfully!");
+      setTimeout(() => setKeyFeedback(""), 4000);
+    }
+  };
 
   const handleSave = () => {
     setIsSaving(true);
@@ -87,6 +126,89 @@ export default function SettingsPage() {
                   </div>
                   <span className="text-muted-foreground group-hover:text-foreground transition-colors font-medium">Require SSO for login</span>
                 </label>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-border/40 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground tracking-tight flex items-center">
+                    <Key className="w-5 h-5 mr-2 text-primary" />
+                    Private Workspace & User Key
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Your scans and security posture are strictly isolated to your private key. Outsiders cannot view your assessments.
+                  </p>
+                </div>
+              </div>
+
+              {keyFeedback && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary flex items-center">
+                  <CheckCircle2 className="w-4 h-4 mr-2 shrink-0" />
+                  {keyFeedback}
+                </div>
+              )}
+
+              <div className="p-4 rounded-xl bg-background/50 border border-border/60 space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Active User Key</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={currentKey}
+                    className="flex-1 font-mono text-sm bg-muted/40 border border-input/60 rounded-lg px-3.5 py-2 text-foreground select-all focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyKey}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-primary/15 text-primary border border-primary/25 hover:bg-primary hover:text-primary-foreground text-xs font-bold transition-all shadow-sm"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 mr-1.5" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 mr-1.5" />
+                        Copy Key
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateNewKey}
+                    title="Generate a fresh private workspace key"
+                    className="inline-flex items-center px-3 py-2 rounded-lg border border-border/60 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-xs font-semibold text-muted-foreground transition-all"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                    Reset Key
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Keep this key safe. You can paste it into another browser or device below to sync your scan history.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-background/30 border border-border/40 space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Restore / Sync Key from Another Device</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Paste another usr_... key here"
+                    value={customKeyInput}
+                    onChange={(e) => setCustomKeyInput(e.target.value)}
+                    className="flex-1 font-mono text-sm bg-background/50 border border-input/60 rounded-lg px-3.5 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCustomKey}
+                    disabled={!customKeyInput.trim()}
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:brightness-110 disabled:opacity-50 transition-all shadow-sm"
+                  >
+                    Sync Workspace
+                  </button>
+                </div>
               </div>
             </div>
           </div>

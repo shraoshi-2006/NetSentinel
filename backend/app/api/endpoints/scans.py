@@ -1,9 +1,9 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from datetime import datetime, timezone
 import re
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -197,6 +197,7 @@ def create_scan(
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks,
     scan_in: ScanCreate,
+    x_user_id: Optional[str] = Header(None),
 ) -> Any:
     cleaned_target = normalize_target_string(scan_in.target)
     if not cleaned_target:
@@ -224,9 +225,13 @@ def create_scan(
         db.commit()
         db.refresh(db_target)
 
+    # Extract user ID
+    user_key = x_user_id.strip() if x_user_id and x_user_id.strip() else None
+
     # Create scan
     scan = Scan(
         target_id=db_target.id,
+        user_id=user_key,
         scan_type=scan_in.scan_type or "full",
         status="pending",
     )
@@ -245,11 +250,21 @@ def create_scan(
 @router.get("/", response_model=List[ScanResponse])
 def read_scans(
     db: Session = Depends(get_db),
+    x_user_id: Optional[str] = Header(None),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
+    user_key = x_user_id.strip() if x_user_id and x_user_id.strip() else None
+    query = db.query(Scan)
+
+    if user_key:
+        query = query.filter(Scan.user_id == user_key)
+    else:
+        # If no user header provided, show legacy/unassigned scans
+        query = query.filter(Scan.user_id.is_(None))
+
     return (
-        db.query(Scan)
+        query
         .order_by(Scan.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -262,6 +277,7 @@ def read_scan(
     *,
     db: Session = Depends(get_db),
     scan_id: int,
+    x_user_id: Optional[str] = Header(None),
 ) -> Any:
     scan = (
         db.query(Scan)
@@ -270,6 +286,14 @@ def read_scan(
     )
 
     if not scan:
+        raise HTTPException(
+            status_code=404,
+            detail="Scan not found"
+        )
+
+    user_key = x_user_id.strip() if x_user_id and x_user_id.strip() else None
+    # If the scan belongs to another user, restrict access
+    if scan.user_id and user_key and scan.user_id != user_key:
         raise HTTPException(
             status_code=404,
             detail="Scan not found"

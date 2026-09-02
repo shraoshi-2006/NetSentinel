@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getUserId } from './user';
 
 const getBaseUrl = (): string => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -15,6 +16,14 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const userId = getUserId();
+  if (userId) {
+    config.headers['X-User-ID'] = userId;
+  }
+  return config;
 });
 
 export const fetchScans = async () => {

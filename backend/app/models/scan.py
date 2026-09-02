@@ -16,6 +16,7 @@ class Scan(Base):
     __tablename__ = "scans"
     id = Column(Integer, primary_key=True, index=True)
     target_id = Column(Integer, ForeignKey("targets.id"))
+    user_id = Column(String, index=True, nullable=True) # Unique user / workspace ID
     scan_type = Column(String, nullable=False) # Quick, Standard, Full
     status = Column(String, default="queued") # queued, running, completed, failed, cancelled
     risk_score = Column(Integer, default=0)
