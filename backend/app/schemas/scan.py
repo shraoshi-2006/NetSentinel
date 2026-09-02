@@ -52,9 +52,10 @@ class PortResponse(BaseModel):
     port_number: int
     protocol: str
     state: str
-    service_name: Optional[str]
-    service_product: Optional[str]
-    service_version: Optional[str]
+    service_name: Optional[str] = None
+    service_product: Optional[str] = None
+    service_version: Optional[str] = None
+    vulnerability_status: Optional[str] = "Safe"
 
     class Config:
         from_attributes = True

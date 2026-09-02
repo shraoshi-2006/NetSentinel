@@ -39,6 +39,7 @@ class Port(Base):
     service_name = Column(String, nullable=True)
     service_product = Column(String, nullable=True)
     service_version = Column(String, nullable=True)
+    vulnerability_status = Column(String, default="Safe", nullable=True) # Vulnerable, At Risk, Exposed, Safe
 
     scan = relationship("Scan", back_populates="ports")
 

@@ -11,6 +11,7 @@ from app.models.scan import Scan, Target, Port, Finding
 from app.schemas.scan import ScanCreate, ScanResponse
 from app.services.scanner.nmap_scanner import NmapScanner
 from app.services.scanner.risk_engine import calculate_risk_score
+from app.services.scanner.vulnerability_engine import analyze_vulnerabilities
 
 router = APIRouter()
 
@@ -65,104 +66,29 @@ def run_scan(scan_id: int):
 
         db.commit()
 
-        # Generate findings based on open ports
+        # Run deep vulnerability and web security analysis
+        generated_findings, port_status_map = analyze_vulnerabilities(target.target, db_ports)
+
+        # Update port vulnerability statuses
+        for db_port in db_ports:
+            db_port.vulnerability_status = port_status_map.get(db_port.port_number, "Safe")
+
+        # Save findings
         db_findings = []
-
-        for port in db_ports:
-            if port.state != "open":
-                continue
-
-            if port.port_number == 21:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="Insecure FTP Service Exposed",
-                    category="Network Services",
-                    severity="High",
-                    confidence="High",
-                    description="FTP service is running on port 21. Standard FTP transmits credentials and data in cleartext.",
-                    evidence="Port 21 is open.",
-                    remediation="Disable plaintext FTP and use SFTP (SSH File Transfer Protocol) or FTPS with TLS.",
-                ))
-            elif port.port_number == 23:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="Unencrypted Telnet Service Exposed",
-                    category="Network Services",
-                    severity="Critical",
-                    confidence="High",
-                    description="Telnet service is running on port 23. Telnet lacks encryption and is vulnerable to credential theft via sniffing.",
-                    evidence="Port 23 is open.",
-                    remediation="Immediately disable Telnet and use SSH (Port 22) for remote terminal management.",
-                ))
-            elif port.port_number in [3306, 5432, 6379, 27017, 1433]:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title=f"Database Port ({port.service_name or port.port_number}) Exposed",
-                    category="Database Security",
-                    severity="High",
-                    confidence="High",
-                    description=f"Database service on port {port.port_number} is directly exposed to external network traffic.",
-                    evidence=f"Port {port.port_number} ({port.service_name}) is open.",
-                    remediation="Restrict database access using firewall rules, VPCs, or VPNs. Never expose raw database ports publicly.",
-                ))
-            elif port.port_number == 3389:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="Remote Desktop Protocol (RDP) Exposed",
-                    category="Remote Access",
-                    severity="High",
-                    confidence="High",
-                    description="RDP on port 3389 is exposed. Public RDP is a high-risk target for automated brute force and ransomware.",
-                    evidence="Port 3389 is open.",
-                    remediation="Restrict RDP behind a secure VPN with Multi-Factor Authentication (MFA).",
-                ))
-            elif port.port_number == 80:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="Plaintext HTTP Service Detected",
-                    category="Web Security",
-                    severity="Medium",
-                    confidence="High",
-                    description="Port 80 serves unencrypted HTTP traffic. Sensitive data can be intercepted by intermediate nodes.",
-                    evidence="Port 80 is open.",
-                    remediation="Configure automatic HTTP to HTTPS redirection and enable HSTS (Strict-Transport-Security).",
-                ))
-            elif port.port_number == 443:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="HTTPS / TLS Service Detected",
-                    category="Web Security",
-                    severity="Info",
-                    confidence="High",
-                    description="Secure HTTPS service is active on port 443.",
-                    evidence="Port 443 is open with TLS support.",
-                    remediation="Ensure valid SSL/TLS certificates and deprecate TLS 1.0/1.1 protocols.",
-                ))
-            elif port.port_number == 22:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title="SSH Remote Management Exposed",
-                    category="Remote Access",
-                    severity="Low",
-                    confidence="High",
-                    description="SSH daemon is listening on port 22.",
-                    evidence="Port 22 is open.",
-                    remediation="Disable password authentication in favor of SSH public keys, disable root login, and use fail2ban.",
-                ))
-            elif port.port_number in [3000, 8000, 8080, 8443, 9000]:
-                db_findings.append(Finding(
-                    scan_id=scan.id,
-                    title=f"Application Service Port ({port.port_number}) Active",
-                    category="Application Security",
-                    severity="Low",
-                    confidence="Medium",
-                    description=f"Port {port.port_number} ({port.service_name or 'custom'}) is active.",
-                    evidence=f"Port {port.port_number} is open.",
-                    remediation="Verify whether this application endpoint requires public exposure or should be restricted.",
-                ))
-
-        for finding in db_findings:
+        for f in generated_findings:
+            finding = Finding(
+                scan_id=scan.id,
+                title=f["title"],
+                category=f["category"],
+                severity=f["severity"],
+                confidence=f.get("confidence", "High"),
+                description=f["description"],
+                evidence=f.get("evidence"),
+                remediation=f.get("remediation"),
+                cve_id=f.get("cve_id"),
+            )
             db.add(finding)
+            db_findings.append(finding)
 
         db.commit()
 

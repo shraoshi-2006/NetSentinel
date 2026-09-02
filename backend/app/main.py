@@ -28,6 +28,14 @@ try:
 except Exception:
     pass
 
+# Ensure vulnerability_status column exists in ports table
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE ports ADD COLUMN vulnerability_status VARCHAR DEFAULT 'Safe'"))
+        conn.commit()
+except Exception:
+    pass
+
 # Backfill scan_number for existing records if null or unsequenced
 try:
     from sqlalchemy.orm import Session
