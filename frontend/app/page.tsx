@@ -9,12 +9,9 @@ export default function Home() {
           <Shield className="h-6 w-6 text-primary" />
           <span className="ml-2 text-lg font-bold">NetSentinel</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard">
-            Dashboard
-          </Link>
-          <Link className="text-sm font-medium hover:text-primary transition-colors" href="https://github.com">
-            GitHub
+        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
+          <Link className="text-sm font-medium hover:text-primary transition-colors" href="/dashboard/security-score">
+            Security Score
           </Link>
         </nav>
       </header>

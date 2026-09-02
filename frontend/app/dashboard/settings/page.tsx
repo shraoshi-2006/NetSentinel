@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Save,
   Shield,
-  Bell,
   Key,
   User,
   Database,
@@ -153,33 +152,6 @@ export default function SettingsPage() {
           </div>
         );
 
-      case "notifications":
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-foreground tracking-tight">Alert Preferences</h3>
-            <p className="text-sm text-muted-foreground">Choose when and how you want to be notified of security events.</p>
-            
-            <div className="space-y-4 mt-6">
-              {[
-                { title: "Critical Vulnerabilities", desc: "Notify immediately when a severity score > 9.0 is detected" },
-                { title: "Scan Completions", desc: "Send a summary report when a scheduled scan finishes" },
-                { title: "New Asset Discovery", desc: "Alert when a new subdomain or IP is found in the wildcard scope" },
-                { title: "System Updates", desc: "Platform maintenance and feature announcements" }
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-start justify-between p-4 rounded-xl bg-background/40 border border-border/50 hover:bg-accent/30 transition-colors">
-                  <div>
-                    <h4 className="text-foreground font-semibold text-sm">{item.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-1.5">{item.desc}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 text-xs font-semibold rounded-md bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground transition-colors">Email</button>
-                    <button className="px-3 py-1 text-xs font-semibold rounded-md bg-muted text-muted-foreground border border-border/50 hover:text-foreground transition-colors">Slack</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
       default:
         return null;
     }
@@ -199,7 +171,6 @@ export default function SettingsPage() {
             {[
               { id: "profile", label: "Profile & Security", icon: User },
               { id: "scanner", label: "Scanner Config", icon: Shield },
-              { id: "notifications", label: "Notifications", icon: Bell },
             ].map((tab) => (
               <button
                 key={tab.id}
