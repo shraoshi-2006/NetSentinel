@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-from app.api.scans import router as scans_router
+from app.api.endpoints.scans import router as scans_router
 
-api_router = APIRouter()
-api_router.include_router(scans_router)
+__all__ = ["scans_router"]
+

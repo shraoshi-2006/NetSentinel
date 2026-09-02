@@ -25,10 +25,11 @@ export default function ScansPage() {
     loadScans();
   }, []);
 
-  const getStatusBadge = (status: strin) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
         return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Completed</span>;
+      case "running":
       case "in_progress":
         return <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-500/10 text-blue-500 border-blue-500/20 animate-pulse">Running</span>;
       case "failed":

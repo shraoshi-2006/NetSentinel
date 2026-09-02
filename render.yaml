@@ -1,71 +1,37 @@
+databases:
+  - name: netsentinel-db
+    databaseName: netsentinel
+    user: postgres
+    plan: free
+
 services:
-  # Database
-  - type: pserv
-    name: netsentinel-db
-    env: docker
-    plan: free
-    dockerCommand: postgres:15-alpine
-    envVars:
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: POSTGRES_DB
-        value: netsentinel
-
-  # Redis
-  - type: pserv
-    name: netsentinel-redis
-    env: docker
-    plan: free
-    dockerCommand: redis:5-alpine
-
   # Backend API
   - type: web
     name: netsentinel-backend
-    region: docker
+    runtime: docker
     plan: free
-    repo: https://github.com/shraoshi-2006/NetSentinel
-    dockerfilePath: ./backend/Dockerfile
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: netsentinel-db
           property: connectionString
-      - key: REDIS_URL
-        value: redis://netsentinel-redis:6379/0
-      - key: CELERY_BROKER_URL
-        value: redis://netsentinel-redis:6379/0
-      - key: CELERY_RESULT_BACKEND
-        value: redis://netsentinel-redis:6379/0
-
-  # Celery Worker
-  - type: worker
-    name: netsentinel-worker
-    env: docker
-    plan: free
-    repo: https://github.com/yourusername/netsentinel
-    dockerfilePath: ./backend/Dockerfile
-    dockerCommand: celery -A app.core.celery_app worker --loglevel=info
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: netsentinel-db
-          property: connectionString
-      - key: REDIS_URL
-        value: redis://netsentinel-redis:6379/0
-      - key: CELERY_BROKER_URL
-        value: redis://netsentinel-redis:6379/0
-      - key: CELERY_RESULT_BACKEND
-        value: redis://netsentinel-redis:6379/0
+      - key: BACKEND_CORS_ORIGINS
+        value: https://netsentinel-frontend.onrender.com,http://localhost:3000
+      - key: ENVIRONMENT
+        value: production
 
   # Frontend
   - type: web
     name: netsentinel-frontend
-    env: docker
+    runtime: docker
     plan: free
-    repo: https://github.com/yourusername/netsentinel
-    dockerfilePath: ./frontend/Dockerfile
+    rootDir: frontend
+    dockerfilePath: Dockerfile
+    dockerContext: .
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://netsentinel-backend.onrender.com/api/v1

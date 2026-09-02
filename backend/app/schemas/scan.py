@@ -1,20 +1,32 @@
-from pydantic import BaseModel, HttpUrl
-from typing import List, Optional
+from pydantic import BaseModel, HttpUrl, field_validator
+from typing import List, Optional, Any
 from datetime import datetime
 
 class ScanCreate(BaseModel):
     target: str
-    scan_type: str # Quick, Standard, Full
+    scan_type: str = "full" # Quick, Standard, Full
 
 class ScanResponse(BaseModel):
     id: int
     target_id: int
+    target: Optional[str] = None
     scan_type: str
     status: str
-    risk_score: int
+    risk_score: Optional[int] = 0
     created_at: datetime
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    findings: Optional[List["FindingResponse"]] = []
+    ports: Optional[List["PortResponse"]] = []
+
+    @field_validator("target", mode="before")
+    @classmethod
+    def extract_target_name(cls, v: Any) -> Optional[str]:
+        if hasattr(v, "target"):
+            return getattr(v, "target")
+        if isinstance(v, str):
+            return v
+        return str(v) if v is not None else None
 
     class Config:
         from_attributes = True

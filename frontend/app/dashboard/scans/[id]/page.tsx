@@ -23,12 +23,23 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleExport = () => {
+    if (!scan) return;
+    const blob = new Blob([JSON.stringify(scan, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `netsentinel_scan_${scan.id}_${scan.target || "report"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     loadScan();
-    // Auto-refresh if scan is pending or in progress
+    // Auto-refresh if scan is pending or running
     let interval: NodeJS.Timeout;
-    if (scan && (scan.status === "pending" || scan.status === "in_progress")) {
-      interval = setInterval(loadScan, 5000);
+    if (scan && (scan.status === "pending" || scan.status === "running" || scan.status === "in_progress")) {
+      interval = setInterval(loadScan, 3000);
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -62,6 +73,8 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
 
   if (!scan) return null;
 
+  const isScanning = scan.status === "pending" || scan.status === "running" || scan.status === "in_progress";
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
@@ -71,7 +84,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
           </Link>
           <div>
             <h2 className="text-2xl font-bold tracking-tight flex items-center">
-              Scan Report: {scan.target}
+              Scan Report: {scan.target || `Target #${scan.target_id}`}
             </h2>
             <p className="text-muted-foreground text-sm flex items-center mt-1">
               Started on {new Date(scan.created_at).toLocaleString()}
@@ -79,17 +92,20 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {(scan.status === "pending" || scan.status === "in_progress") && (
+          {isScanning && (
             <button 
               onClick={loadScan}
               className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin-slow" />
-              Refreshing...
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Scanning...
             </button>
           )}
           {scan.status === "completed" && (
-            <button className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+            <button 
+              onClick={handleExport}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
               <Download className="h-4 w-4 mr-2" />
               Export JSON
             </button>
@@ -102,14 +118,14 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
         <div className="rounded-xl border border-border/40 bg-card p-6 shadow-sm">
           <div className="text-sm font-medium text-muted-foreground mb-2">Status</div>
           <div className="text-xl font-bold capitalize flex items-center">
-            {scan.status === 'in_progress' ? (
-              <><span className="relative flex h-3 w-3 mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span></span> In Progress</>
+            {scan.status === 'running' || scan.status === 'in_progress' ? (
+              <><span className="relative flex h-3 w-3 mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span></span> Running</>
             ) : scan.status === 'completed' ? (
               <><span className="h-3 w-3 rounded-full bg-emerald-500 mr-2"></span> Completed</>
             ) : scan.status === 'failed' ? (
               <><span className="h-3 w-3 rounded-full bg-destructive mr-2"></span> Failed</>
             ) : (
-              <><span className="h-3 w-3 rounded-full bg-muted-foreground mr-2"></span> Pending</>
+              <><span className="h-3 w-3 rounded-full bg-amber-400 mr-2 animate-pulse"></span> Pending</>
             )}
           </div>
         </div>

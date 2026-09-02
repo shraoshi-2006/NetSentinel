@@ -19,19 +19,20 @@ export default function NewScanPage() {
     setIsLoading(true);
     setError("");
 
-    // Validate target (basic IP or Domain regex)
-    const targetRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$|^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    if (!targetRegex.test(target)) {
-      setError("Please enter a valid IP address or domain name.");
+    const cleaned = target.trim();
+    if (!cleaned) {
+      setError("Please enter a target IP address or domain name.");
       setIsLoading(false);
       return;
     }
 
     try {
-      const scan = await createScan(target, scanType);
+      const scan = await createScan(cleaned, scanType);
       router.push(`/dashboard/scans/${scan.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Failed to start scan");
+      console.error("Scan launch error:", err);
+      const msg = err.response?.data?.detail || err.message || "Failed to start scan. Please ensure the backend server is running.";
+      setError(typeof msg === "string" ? msg : JSON.stringify(msg));
     } finally {
       setIsLoading(false);
     }
