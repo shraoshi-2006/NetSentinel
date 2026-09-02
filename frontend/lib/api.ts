@@ -1,16 +1,24 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1`;
+const getBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (envUrl && envUrl !== "undefined") {
+    const clean = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+    return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+  }
+  return 'http://localhost:8000/api/v1';
+};
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getBaseUrl(),
+  timeout: 45000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const fetchScans = async () => {
-  const response = await api.get('/scans/');
+  const response = await api.get('/scans');
   return response.data;
 };
 
@@ -20,7 +28,7 @@ export const fetchScan = async (id: number) => {
 };
 
 export const createScan = async (target: string, scanType: string = 'full') => {
-  const response = await api.post('/scans/', {
+  const response = await api.post('/scans', {
     target,
     scan_type: scanType,
   });

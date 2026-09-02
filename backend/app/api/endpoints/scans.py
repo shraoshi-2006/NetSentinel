@@ -190,6 +190,7 @@ def run_scan(scan_id: int):
         db.close()
 
 
+@router.post("", response_model=ScanResponse)
 @router.post("/", response_model=ScanResponse)
 def create_scan(
     *,
@@ -240,6 +241,7 @@ def create_scan(
     return scan
 
 
+@router.get("", response_model=List[ScanResponse])
 @router.get("/", response_model=List[ScanResponse])
 def read_scans(
     db: Session = Depends(get_db),

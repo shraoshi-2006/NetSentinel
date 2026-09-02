@@ -31,7 +31,14 @@ export default function NewScanPage() {
       router.push(`/dashboard/scans/${scan.id}`);
     } catch (err: any) {
       console.error("Scan launch error:", err);
-      const msg = err.response?.data?.detail || err.message || "Failed to start scan. Please ensure the backend server is running.";
+      let msg = err.response?.data?.detail;
+      if (!msg) {
+        if (err.message === "Network Error" || err.code === "ERR_NETWORK") {
+          msg = "Network Error: Unable to reach the backend API server. Please ensure the backend server is running on port 8000.";
+        } else {
+          msg = err.message || "Failed to start scan. Please ensure the backend server is running.";
+        }
+      }
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));
     } finally {
       setIsLoading(false);
