@@ -123,9 +123,9 @@ export default function ScansPage() {
                   </td>
                 </tr>
               ) : (
-                scans.map((scan) => (
+                scans.map((scan, index) => (
                   <tr key={scan.id} className="border-b border-border/40 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                    <td className="p-4 align-middle font-medium">#{scan.id}</td>
+                    <td className="p-4 align-middle font-medium">#{scan.scan_number ?? (scans.length - index)}</td>
                     <td className="p-4 align-middle font-medium">{scan.target}</td>
                     <td className="p-4 align-middle text-muted-foreground capitalize">{scan.scan_type}</td>
                     <td className="p-4 align-middle">{getStatusBadge(scan.status)}</td>

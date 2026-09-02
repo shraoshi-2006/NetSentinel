@@ -228,10 +228,18 @@ def create_scan(
     # Extract user ID
     user_key = x_user_id.strip() if x_user_id and x_user_id.strip() else None
 
+    # Calculate user-specific sequential scan number (#1, #2, ...)
+    if user_key:
+        user_scan_count = db.query(Scan).filter(Scan.user_id == user_key).count()
+    else:
+        user_scan_count = db.query(Scan).filter(Scan.user_id.is_(None)).count()
+    assigned_scan_number = user_scan_count + 1
+
     # Create scan
     scan = Scan(
         target_id=db_target.id,
         user_id=user_key,
+        scan_number=assigned_scan_number,
         scan_type=scan_in.scan_type or "full",
         status="pending",
     )
@@ -263,13 +271,20 @@ def read_scans(
         # If no user header provided, show legacy/unassigned scans
         query = query.filter(Scan.user_id.is_(None))
 
-    return (
+    scans = (
         query
         .order_by(Scan.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()
     )
+
+    # Fallback to ensure scan_number is always populated sequentially
+    for idx, s in enumerate(scans):
+        if s.scan_number is None or s.scan_number == 0:
+            s.scan_number = len(scans) - idx
+
+    return scans
 
 
 @router.get("/{scan_id}", response_model=ScanResponse)

@@ -29,7 +29,7 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `netsentinel_scan_${scan.id}_${scan.target || "report"}.json`;
+    a.download = `netsentinel_scan_${scan.scan_number || scan.id}_${scan.target || "report"}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -83,8 +83,11 @@ export default function ScanReportPage({ params }: { params: Promise<{ id: strin
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight flex items-center">
-              Scan Report: {scan.target || `Target #${scan.target_id}`}
+            <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25 font-mono font-bold">
+                Scan #{scan.scan_number || scan.id}
+              </span>
+              <span>Scan Report: {scan.target || `Target #${scan.target_id}`}</span>
             </h2>
             <p className="text-muted-foreground text-sm flex items-center mt-1">
               Started on {new Date(scan.created_at).toLocaleString()}

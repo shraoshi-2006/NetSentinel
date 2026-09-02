@@ -20,6 +20,34 @@ try:
 except Exception:
     pass
 
+# Ensure scan_number column exists in scans table (backwards-compatible schema upgrade)
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE scans ADD COLUMN scan_number INTEGER DEFAULT 1"))
+        conn.commit()
+except Exception:
+    pass
+
+# Backfill scan_number for existing records if null or unsequenced
+try:
+    from sqlalchemy.orm import Session
+    from app.models.scan import Scan
+    with Session(engine) as session:
+        all_scans = session.query(Scan).order_by(Scan.created_at.asc()).all()
+        counters = {}
+        updated = False
+        for s in all_scans:
+            u = s.user_id or "__none__"
+            counters[u] = counters.get(u, 0) + 1
+            if s.scan_number is None or s.scan_number != counters[u]:
+                s.scan_number = counters[u]
+                updated = True
+        if updated:
+            session.commit()
+except Exception:
+    pass
+
+
 
 app = FastAPI(
     title="NetSentinel API",

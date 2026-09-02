@@ -42,6 +42,7 @@ class SecurityRecommendation(BaseModel):
 
 class LastScanInfo(BaseModel):
     id: Optional[int] = None
+    scan_number: Optional[int] = None
     target: Optional[str] = None
     scan_type: Optional[str] = None
     status: Optional[str] = None
@@ -52,6 +53,7 @@ class LastScanInfo(BaseModel):
 
 class ScoreHistoryItem(BaseModel):
     scan_id: int
+    scan_number: Optional[int] = None
     target: str
     date: str
     score: int

@@ -213,7 +213,7 @@ export default function DashboardOverview() {
                         {scan.target}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        #{scan.id} &bull; {new Date(scan.created_at).toLocaleString()}
+                        #{scan.scan_number ?? scan.id} &bull; {new Date(scan.created_at).toLocaleString()}
                       </p>
                     </div>
                     <div className="ml-auto flex items-center gap-2 shrink-0">

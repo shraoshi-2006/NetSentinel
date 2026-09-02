@@ -639,7 +639,7 @@ export default function SecurityScorePage() {
             <div className="p-6 rounded-xl bg-background/40 border border-border/40 text-center space-y-2">
               <p className="text-sm font-semibold text-foreground">Initial Assessment Recorded</p>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Scan # {data.history[0].scan_id} ({data.history[0].target}) scored {data.history[0].score}/100.
+                Scan #{data.history[0].scan_number || 1} ({data.history[0].target}) scored {data.history[0].score}/100.
                 Run subsequent scans to generate longitudinal security score trends.
               </p>
             </div>
@@ -706,10 +706,10 @@ export default function SecurityScorePage() {
 
               {/* History timeline list */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                {data.history.slice(-4).map((h) => (
+                {data.history.slice(-4).map((h, idx) => (
                   <div key={h.scan_id} className="p-3 rounded-xl bg-background/40 border border-border/50 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-foreground">Scan #{h.scan_id}</span>
+                      <span className="font-bold text-foreground">Scan #{h.scan_number || (data.history.length > 4 ? data.history.length - 4 + idx + 1 : idx + 1)}</span>
                       <span className="font-black text-cyan-500">{h.score}/100</span>
                     </div>
                     <p className="text-muted-foreground truncate mt-1">{h.target}</p>

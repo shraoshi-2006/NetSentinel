@@ -11,6 +11,7 @@ class ScanResponse(BaseModel):
     target_id: int
     target: Optional[str] = None
     user_id: Optional[str] = None
+    scan_number: Optional[int] = 1
     scan_type: str
     status: str
     risk_score: Optional[int] = 0

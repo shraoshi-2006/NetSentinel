@@ -64,14 +64,16 @@ def get_security_score(
     )
 
     history_items = []
-    for s in all_completed_scans:
+    for idx, s in enumerate(all_completed_scans):
         s_findings = db.query(Finding).filter(Finding.scan_id == s.id).all()
         s_ports = db.query(Port).filter(Port.scan_id == s.id).all()
         s_score, _ = calculate_overall_security_score(s_findings, s_ports)
         target_name = s.target.target if s.target else f"Target #{s.target_id}"
+        assigned_num = s.scan_number if (s.scan_number and s.scan_number > 0) else (idx + 1)
         history_items.append(
             ScoreHistoryItem(
                 scan_id=s.id,
+                scan_number=assigned_num,
                 target=target_name,
                 date=s.created_at.strftime("%Y-%m-%d %H:%M") if s.created_at else "",
                 score=s_score,
@@ -109,6 +111,7 @@ def get_security_score(
 
     last_scan_info = LastScanInfo(
         id=current_scan.id,
+        scan_number=current_scan.scan_number or 1,
         target=target_name,
         scan_type=current_scan.scan_type.capitalize() if current_scan.scan_type else "Full",
         status=current_scan.status,

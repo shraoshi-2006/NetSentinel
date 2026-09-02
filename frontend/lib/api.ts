@@ -90,6 +90,7 @@ export interface SecurityRecommendation {
 
 export interface LastScanInfo {
   id?: number | null;
+  scan_number?: number | null;
   target?: string | null;
   scan_type?: string | null;
   status?: string | null;
@@ -100,6 +101,7 @@ export interface LastScanInfo {
 
 export interface ScoreHistoryItem {
   scan_id: number;
+  scan_number?: number;
   target: string;
   date: string;
   score: number;

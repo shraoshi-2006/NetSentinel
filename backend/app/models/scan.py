@@ -17,6 +17,7 @@ class Scan(Base):
     id = Column(Integer, primary_key=True, index=True)
     target_id = Column(Integer, ForeignKey("targets.id"))
     user_id = Column(String, index=True, nullable=True) # Unique user / workspace ID
+    scan_number = Column(Integer, default=1) # User-relative sequential scan number (#1, #2...)
     scan_type = Column(String, nullable=False) # Quick, Standard, Full
     status = Column(String, default="queued") # queued, running, completed, failed, cancelled
     risk_score = Column(Integer, default=0)
