@@ -3,11 +3,7 @@ uvicorn
 sqlalchemy
 asyncpg
 alembic
-celery
-redis
-httpx
-dnspython
-cryptography
 python-nmap
 pydantic
 pydantic-settings
+psycopg2-binary

@@ -1,0 +1,73 @@
+services:
+  # Database
+  - type: pserv
+    name: netsentinel-db
+    runtime: image
+    plan: free
+    image:
+      url: postgres:15-alpine
+    envVars:
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: netsentinel
+
+  # Redis
+  - type: pserv
+    name: netsentinel-redis
+    runtime: image
+    plan: free
+    image:
+      url: redis:5-alpine
+
+  # Backend API
+  - type: web
+    name: netsentinel-backend
+    runtime: docker
+    plan: free
+    repo: https://github.com/shraoshi-2006/NetSentinel
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: netsentinel-db
+          property: connectionString
+      - key: REDIS_URL
+        value: redis://netsentinel-redis:6379/0
+      - key: CELERY_BROKER_URL
+        value: redis://netsentinel-redis:6379/0
+      - key: CELERY_RESULT_BACKEND
+        value: redis://netsentinel-redis:6379/0
+
+  # Celery Worker
+  - type: worker
+    name: netsentinel-worker
+    runtime: docker
+    plan: free
+    repo: https://github.com/yourusername/netsentinel
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: celery -A app.core.celery_app worker --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: netsentinel-db
+          property: connectionString
+      - key: REDIS_URL
+        value: redis://netsentinel-redis:6379/0
+      - key: CELERY_BROKER_URL
+        value: redis://netsentinel-redis:6379/0
+      - key: CELERY_RESULT_BACKEND
+        value: redis://netsentinel-redis:6379/0
+
+  # Frontend
+  - type: web
+    name: netsentinel-frontend
+    runtime: docker
+    plan: free
+    repo: https://github.com/yourusername/netsentinel
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://netsentinel-backend.onrender.com/api/v1

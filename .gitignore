@@ -1,1 +1,21 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Secrets
 .env
+.env.*
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node
+node_modules/
+.next/
+
+# IDE
+.vscode/

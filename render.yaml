@@ -23,9 +23,9 @@ services:
   # Backend API
   - type: web
     name: netsentinel-backend
-    env: docker
+    region: docker
     plan: free
-    repo: https://github.com/yourusername/netsentinel
+    repo: https://github.com/shraoshi-2006/NetSentinel
     dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: DATABASE_URL
