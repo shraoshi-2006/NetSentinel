@@ -3,13 +3,14 @@ databases:
     databaseName: netsentinel
     user: postgres
     plan: free
-
+    region: singapore
 services:
   # Backend API
   - type: web
     name: netsentinel-backend
     runtime: docker
     plan: free
+    region: singapore
     rootDir: backend
     dockerfilePath: Dockerfile
     dockerContext: .
@@ -29,6 +30,7 @@ services:
     name: netsentinel-frontend
     runtime: docker
     plan: free
+    region: singapore
     rootDir: frontend
     dockerfilePath: Dockerfile
     dockerContext: .
