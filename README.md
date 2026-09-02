@@ -45,15 +45,14 @@ Built with a high-performance **FastAPI** backend and an animated, responsive **
 - **Actionable Remediation**: Prioritized recommendations (Urgent, High, Medium) with step-by-step guidance.
 - **Longitudinal Trend Chart**: Interactive SVG score trajectory tracking security improvements across scans.
 
-### 3. 🔒 Isolated Private Sessions (Zero-Friction Privacy)
-- **Automatic User Keys**: Each visitor is automatically assigned a unique, cryptographically random workspace key (`usr_...`) stored locally in their browser.
-- **Strict Data Isolation**: Scan history, targets, findings, and security scores are completely private to the active key. Outsiders visiting the deployed link cannot view someone else's scans.
-- **Per-User Sequential Numbering**: Every user's scans are numbered `#1`, `#2`, `#3`... starting from `#1` specifically for their workspace.
-- **Cross-Device Sync**: Users can copy their User Key in **Settings** &rarr; **Profile & Security** and paste it on any device to sync their scans.
+### 3. 🔒 Automatic Private Sessions (Zero-Friction Privacy)
+- **Automatic Browser Sessions**: Each visitor is automatically assigned an isolated session in their browser without requiring complex signup or logins.
+- **Strict Data Isolation**: Scan history, targets, findings, and security scores are completely private. Outsiders visiting the deployed link cannot view someone else's scans.
+- **Per-User Sequential Numbering**: Every user's personal scan history begins at `#1` (`#1`, `#2`, `#3`...), keeping their audits organized and independent.
 
 ### 4. ⚡ Modern SOC-Grade Dashboard
 - **Live Metrics**: Dynamically calculated KPIs (Total Scans, Critical Findings, Safe Targets, Average Scan Time).
-- **Scan Detail Explorer**: Comprehensive drill-down reports for individual targets with severity badges and port summaries.
+- **Scan Detail Explorer**: Comprehensive drill-down reports for individual targets with severity badges, port posture, and evidence.
 - **One-Click JSON Export**: Download raw, structured audit reports for compliance documentation or offline analysis.
 - **Notification Hub**: Dedicated management interface for Slack, Email, and Webhook alert channels.
 
@@ -63,10 +62,10 @@ Built with a high-performance **FastAPI** backend and an animated, responsive **
 
 ```
 NetSentinel
-├── frontend/                  # Next.js 15 App Router Frontend
+├── frontend/                  # Next.js App Router Frontend
 │   ├── app/                   # App routes (Dashboard, Scans, Security Score, Settings)
-│   ├── components/            # Reusable UI widgets (WorkspaceBadge, etc.)
-│   ├── lib/                   # API client (Axios with X-User-ID interceptors) & User Session
+│   ├── components/            # Reusable UI widgets and navigation
+│   ├── lib/                   # API client (Axios with X-User-ID interceptor) & Session utility
 │   └── public/                # Static assets
 │
 └── backend/                   # FastAPI Python REST API

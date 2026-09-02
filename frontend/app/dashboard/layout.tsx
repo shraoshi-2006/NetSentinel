@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Shield, ShieldCheck, LayoutDashboard, PlusCircle, History, Settings, Bell } from "lucide-react";
-import WorkspaceBadge from "@/components/WorkspaceBadge";
 
 export default function DashboardLayout({
   children,
@@ -45,7 +44,6 @@ export default function DashboardLayout({
               <Settings className="h-5 w-5 mr-3" />
               Settings
             </Link>
-            <WorkspaceBadge />
           </div>
         </nav>
       </aside>
